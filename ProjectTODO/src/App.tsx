@@ -17,9 +17,12 @@ type TodoProps = {
 
 function App() {
   const [todo, setTodo] = useState<TodoProps[]>();
+  const [isEditing, setEditingStatus] = useState(false);
 
   const formRef = useRef<HTMLFormElement | null>(null);
   const dialogRef = useRef<HTMLDialogElement | null>(null);
+
+  const idRef = useRef(0);
 
   useEffect(() => {
     const todo = localStorage.getItem('todo')
@@ -46,11 +49,30 @@ function App() {
     }
   }
 
+  const editTodo = (id : number, event : React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = formRef?.current;
+    let editedTodo : TodoProps;
+    if(form) {
+      const formData = new FormData(form);
+      editedTodo  = {
+        id : id,
+        title: formData.get('title') as string,
+        autor: formData.get('autor') as string,
+        status: formData.get('status') as STATUS,
+      };
+    }
+    const newListTodo = todo?.map((todo : TodoProps) => todo.id === id ? editedTodo : todo);
+    setTodo(newListTodo);
+    localStorage.setItem('todo', JSON.stringify(newListTodo));
+    dialogRef.current?.close();  
+  }
+
   const dialogOpen = ((event : React.MouseEvent<HTMLDialogElement, MouseEvent> ) => {
     if (event.target === dialogRef.current) {
-      dialogRef.current?.close()
-    }
-  })
+      dialogRef.current?.close();
+    };
+  });
 
   return (
     <>
@@ -58,7 +80,7 @@ function App() {
         <dialog ref={dialogRef} onClick={(event) => {
           dialogOpen(event);
         }}>
-          <form ref={formRef} onSubmit={(event) => addTodo(event)}>
+          <form ref={formRef} onSubmit={(event) => !isEditing  ? addTodo(event) : editTodo(idRef.current, event)}>
             <label htmlFor='autor'>
               Name of the autor  
             </label>
@@ -88,7 +110,11 @@ function App() {
           {todo && todo.map((t : TodoProps, index) => {
             return (
               <li id={`${t.id}`} key={index}>
-                {t.title} - {t.autor} - {t.status}
+                {t.title}
+                 - 
+                {t.autor}
+                 - 
+                {t.status}
                 <br/>
                 <button onClick={() => {
                     const newListTodo = todo.filter((todo : TodoProps) => todo.id !== t.id)
@@ -98,17 +124,31 @@ function App() {
                 }>
                   Delete this todo
                 </button>
-
+                <button onClick={() => {
+                  const selectedTodo = todo.filter((todo : TodoProps) => todo.id === t.id)
+                  const form = formRef.current
+                  if(form?.elements instanceof HTMLFormControlsCollection){
+                    (form.elements.namedItem('autor') as HTMLInputElement).value = selectedTodo[0].autor;
+                    (form.elements.namedItem('title') as HTMLInputElement).value = selectedTodo[0].title;
+                    (form.elements.namedItem('status') as HTMLSelectElement).value = selectedTodo[0].status;
+                  }
+                  setEditingStatus(true);
+                  idRef.current = t.id;
+                  dialogRef.current?.showModal()
+                }}
+                >
+                  Edit this todo
+                </button>
               </li>
 
             )
           })}
         </ol>
-        <button onClick={() => dialogRef.current?.showModal()}>
+        <button onClick={() => {setEditingStatus(false);dialogRef.current?.showModal()}}>
           Add an new todo
         </button>
     </>
   )
 }
 
-export default App
+export default App;
