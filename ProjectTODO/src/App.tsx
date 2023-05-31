@@ -45,6 +45,7 @@ function App() {
         status: formData.get('status') as STATUS,
       };
     }
+    // if the id is defined, it's an edit, if not it's an add
     if(id) newListTodo = todo?.map((todo : TodoProps) => todo.id === id ? editedTodo : todo);
     else newListTodo = todo ? [...todo, editedTodo] : [editedTodo];
     setTodo(newListTodo);
