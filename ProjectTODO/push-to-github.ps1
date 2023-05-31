@@ -19,8 +19,5 @@ git add .
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 git commit -m "$commitMessage ($timestamp)"
 
-# Set the remote repository URL
-git remote add origin $remoteUrl
-
 # Push the changes to the remote repository using your GitHub credentials
 git push origin master --force
