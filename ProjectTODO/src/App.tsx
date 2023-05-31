@@ -17,9 +17,9 @@ type TodoProps = {
 
 function App() {
   const [todo, setTodo] = useState<TodoProps[]>();
-  const [showDialogBox, setShowDialog] = useState(false)
 
-  const formRef = useRef<HTMLFormElement | null>(null)  
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const dialogRef = useRef<HTMLDialogElement | null>(null);
 
   useEffect(() => {
     const todo = localStorage.getItem('todo')
@@ -37,53 +37,76 @@ function App() {
         id : todo ? todo.length + 1 : 1,
         title: formData.get('title') as string,
         autor: formData.get('autor') as string,
-        status: STATUS.NOTSTARTED,
+        status: formData.get('status') as STATUS,
       }
       const newListTodo = todo ? [...todo, newTodo] : [newTodo]
       setTodo(newListTodo)
       localStorage.setItem('todo', JSON.stringify(newListTodo))
-      setShowDialog(false)
+      dialogRef.current?.close();
     }
   }
 
+  const dialogOpen = ((event : React.MouseEvent<HTMLDialogElement, MouseEvent> ) => {
+    if (event.target === dialogRef.current) {
+      dialogRef.current?.close()
+    }
+  })
+
   return (
     <>
-      <dialog open={showDialogBox}>
-        <form ref={formRef} onSubmit={(event) => addTodo(event)}>
-          <label htmlFor='autor'>
-            Name of the autor  
-          </label>
-          <input name='autor' placeholder='Name...' />
-          <label htmlFor='title'>
-            Title of the task
-          </label>
-          <input name='title' placeholder='Title...' />
-          <button disabled={false}>Add to the list</button>
-        </form>
-      </dialog>
-      <ol>
-        {todo && todo.map((t : TodoProps, index) => {
-          return (
-            <li id={`${t.id}`} key={index}>
-              {t.title} - {t.autor} - {t.status}
-              <br/>
-              <button onClick={() => {
-                  const newListTodo = todo.filter((todo : TodoProps) => todo.id !== t.id)
-                  setTodo(newListTodo)
-                  localStorage.setItem('todo', JSON.stringify(newListTodo))
-                }
-              }>
-                Delete this todo
-              </button>
+      <div>
+        <dialog ref={dialogRef} onClick={(event) => {
+          dialogOpen(event);
+        }}>
+          <form ref={formRef} onSubmit={(event) => addTodo(event)}>
+            <label htmlFor='autor'>
+              Name of the autor  
+            </label>
+            <input name='autor' placeholder='Name...' />
+            <label htmlFor='title'>
+              Title of the task
+            </label>
+            <input name='title' placeholder='Title...' />
+            <label htmlFor='status'>
+              Status of the task
+            </label>
+            <select name='status'>
+              {Object.values(STATUS).map((status, index) => {
+                return (
+                  <option key={index} value={status}>
+                    {status}
+                  </option>
+                )
+              })}
+            </select>
+            <button disabled={false} type='submit'>Add to the list</button>
+            <button onClick={() => dialogRef.current?.close()} type='reset'>Cancel</button>
+          </form>
+        </dialog>
+      </div>
+        <ol>
+          {todo && todo.map((t : TodoProps, index) => {
+            return (
+              <li id={`${t.id}`} key={index}>
+                {t.title} - {t.autor} - {t.status}
+                <br/>
+                <button onClick={() => {
+                    const newListTodo = todo.filter((todo : TodoProps) => todo.id !== t.id)
+                    setTodo(newListTodo)
+                    localStorage.setItem('todo', JSON.stringify(newListTodo))
+                  }
+                }>
+                  Delete this todo
+                </button>
 
-            </li>
+              </li>
 
-          )
-        })}
-      </ol>
-      <button onClick={() => setShowDialog(!showDialogBox)}>
-        Add an new todo
-      </button>
+            )
+          })}
+        </ol>
+        <button onClick={() => dialogRef.current?.showModal()}>
+          Add an new todo
+        </button>
     </>
   )
 }
