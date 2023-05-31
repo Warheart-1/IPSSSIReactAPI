@@ -31,38 +31,22 @@ function App() {
     }
   }, [])
 
-  const addTodo = (event : React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = formRef.current;
-    if (form) {
-      const formData = new FormData(form);
-      const newTodo : TodoProps = {
-        id : todo ? todo.length + 1 : 1,
-        title: formData.get('title') as string,
-        autor: formData.get('autor') as string,
-        status: formData.get('status') as STATUS,
-      }
-      const newListTodo = todo ? [...todo, newTodo] : [newTodo]
-      setTodo(newListTodo)
-      localStorage.setItem('todo', JSON.stringify(newListTodo))
-      dialogRef.current?.close();
-    }
-  }
-
-  const editTodo = (id : number, event : React.FormEvent<HTMLFormElement>) => {
+  const modifyTodo = (event : React.FormEvent<HTMLFormElement>, id? : number) => {
     event.preventDefault();
     const form = formRef?.current;
     let editedTodo : TodoProps;
+    let newListTodo : TodoProps[] | undefined;
     if(form) {
       const formData = new FormData(form);
       editedTodo  = {
-        id : id,
+        id : id ? id : todo ? todo.length + 1 : 1,
         title: formData.get('title') as string,
         autor: formData.get('autor') as string,
         status: formData.get('status') as STATUS,
       };
     }
-    const newListTodo = todo?.map((todo : TodoProps) => todo.id === id ? editedTodo : todo);
+    if(id) newListTodo = todo?.map((todo : TodoProps) => todo.id === id ? editedTodo : todo);
+    else newListTodo = todo ? [...todo, editedTodo] : [editedTodo];
     setTodo(newListTodo);
     localStorage.setItem('todo', JSON.stringify(newListTodo));
     dialogRef.current?.close();  
@@ -80,7 +64,7 @@ function App() {
         <dialog ref={dialogRef} onClick={(event) => {
           dialogOpen(event);
         }}>
-          <form ref={formRef} onSubmit={(event) => !isEditing  ? addTodo(event) : editTodo(idRef.current, event)}>
+          <form ref={formRef} onSubmit={(event) => !isEditing  ? modifyTodo(event) : modifyTodo(event,idRef.current)}>
             <label htmlFor='autor'>
               Name of the autor  
             </label>
