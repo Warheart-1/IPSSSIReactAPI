@@ -90,6 +90,7 @@ function App() {
             <button onClick={() => dialogRef.current?.close()} type='reset'>Cancel</button>
           </form>
         </dialog>
+        <h1>Todo list</h1>
       </div>
         <ol>
           {todo && todo.map((t : TodoProps, index) => {
